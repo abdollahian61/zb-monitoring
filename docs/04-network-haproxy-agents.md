@@ -36,18 +36,18 @@ Passive بودن Agent مستقل از Active بودن پراکسی است. پی
 
 ```ini
 ProxyMode=0
-Server=REPLACE_B_IP:10051;REPLACE_C_IP:10051
-Hostname=eit-zbx-proxy01
+Server=192.168.42.2:10051;192.168.42.3:10051
+Hostname=EIT-ZBX-Proxy01
 ```
 
-Hostname باید دقیقاً با پراکسی ثبت‌شده در UI برابر باشد. نسخه پراکسی همان 7.4.15 باشد؛ DB/buffer، HA گروه پراکسی و sizing آن فاز جدا هستند. نمونه بالا کانفیگ کامل پراکسی نیست. هر پراکسی به هر دو IP دسترسی داشته باشد. برای TLS پراکسی/Agent از PSK یا certificate و template/host Encryption منطبق استفاده کنید؛ کلید واقعی در ریپو نباشد.
+Hostname باید دقیقاً با پراکسی ثبت‌شده در UI برابر باشد. نسخه پراکسی همان 7.4.15 باشد؛ نصب دو پراکسی و buffer اولیه در [داک پراکسی](06-proxies.md) آمده است؛ HA گروه و sizing نهایی به دسترسی شبکه و بار واقعی وابسته‌اند. نمونه بالا کانفیگ کامل پراکسی نیست. هر پراکسی به هر دو IP دسترسی داشته باشد. برای TLS پراکسی/Agent از PSK یا certificate و template/host Encryption منطبق استفاده کنید؛ کلید واقعی در ریپو نباشد.
 
 ## Agent Passive
 
 هاست مستقیم: Server شامل IP B و C با **comma**. هاست پشت پراکسی: Server شامل IP پراکسی مسئول و در سناریوی proxy group، همه اعضای مجاز گروه باشد. Agent2، ServerActive خالی و templateهای Passive.
 
 ```ini
-Server=REPLACE_B_IP,REPLACE_C_IP
+Server=192.168.42.2,192.168.42.3
 Hostname=REPLACE_EXACT_HOSTNAME
 ```
 

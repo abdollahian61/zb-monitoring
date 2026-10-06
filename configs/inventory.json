@@ -1,0 +1,10 @@
+{
+  "frontend_fqdn": "zabbix.iraneit.app",
+  "nodes": {
+    "primary": {"hostname": "EIT-ZBX-Pri", "ip": "192.168.42.2"},
+    "standby": {"hostname": "EIT-ZBX-HA", "ip": "192.168.42.3"},
+    "database": {"hostname": "EIT-ZBX-DB", "ip": "192.168.42.4"},
+    "proxy01": {"hostname": "EIT-ZBX-Proxy01", "ip": "192.168.42.5"},
+    "proxy02": {"hostname": "EIT-ZBX-Proxy02", "ip": "192.168.42.6"}
+  }
+}

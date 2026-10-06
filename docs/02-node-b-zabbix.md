@@ -22,7 +22,7 @@ dpkg-query -W 'zabbix*'
 قبل از import، خالی‌بودن DB را بررسی کنید:
 
 ```bash
-mariadb -h REPLACE_DB_IP -u zabbix -p -e "SELECT COUNT(*) AS tables_count FROM information_schema.tables WHERE table_schema='zabbix';"
+mariadb -h 192.168.42.4 -u zabbix -p -e "SELECT COUNT(*) AS tables_count FROM information_schema.tables WHERE table_schema='zabbix';"
 ```
 
 فقط اگر tables_count صفر است اجرا کنید. استفاده از فایل موقت 0600 برای واردکردن رمز از تداخل stdin با prompt جلوگیری می‌کند:
@@ -31,7 +31,7 @@ mariadb -h REPLACE_DB_IP -u zabbix -p -e "SELECT COUNT(*) AS tables_count FROM i
 umask 077
 cat > /root/zabbix-import.cnf <<'EOF'
 [client]
-host=REPLACE_DB_IP
+host=192.168.42.4
 user=zabbix
 password=REPLACE_DB_PASSWORD
 EOF
@@ -40,7 +40,7 @@ zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mariadb --defaults-extr
 IMPORT_RC=$?
 rm -f /root/zabbix-import.cnf
 test "$IMPORT_RC" -eq 0 || { echo 'Schema import failed: investigate before starting'; exit 1; }
-mariadb -h REPLACE_DB_IP -u zabbix -p zabbix -e 'SELECT * FROM dbversion; SHOW TABLES;'
+mariadb -h 192.168.42.4 -u zabbix -p zabbix -e 'SELECT * FROM dbversion; SHOW TABLES;'
 ```
 
 اگر import نیمه‌تمام شد، دوباره روی همان DB اجرا نکنید؛ خطا را بررسی و فقط برای نصب تازه و پس از تأیید نبود داده، DB خالی جدید بسازید. مراحل privilege موقت binlog در داک A آمده‌اند.
@@ -129,8 +129,8 @@ php -l /etc/zabbix/web/zabbix.conf.php
 در `/etc/zabbix/zabbix_agent2.conf` مقدارهای فعال را اصلاح کنید (تکراری نگذارید):
 
 ```ini
-Server=REPLACE_B_IP,REPLACE_C_IP
-Hostname=eit-zbx-srv01
+Server=192.168.42.2,192.168.42.3
+Hostname=EIT-ZBX-Pri
 ```
 
 ServerActive را خالی/کامنت کنید. از template نوع passive مانند Linux by Zabbix agent استفاده کنید. سپس `systemctl enable --now zabbix-agent2` و `systemctl restart zabbix-agent2`. مانیتورینگ DB/OS نود A و C هم مطابق همین دسترسی مبدأ تنظیم شود.

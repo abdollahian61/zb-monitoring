@@ -43,7 +43,7 @@ curl -I -H 'Host: zabbix.iraneit.app' http://127.0.0.1:8080/
 
 ## 4. Agent و تحویل
 
-Agent2 را مانند داک B با Server شامل IP هر دو نود، ServerActive غیرفعال و Hostname=eit-zbx-srv02 تنظیم کنید. سپس service را restart کنید.
+Agent2 را مانند داک B با Server شامل IP هر دو نود، ServerActive غیرفعال و Hostname=EIT-ZBX-HA تنظیم کنید. سپس service را restart کنید.
 
 - یک Active و یک Standby در HA status.
 - نسخه یکسان serverها، frontendها و schema.

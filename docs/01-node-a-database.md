@@ -39,14 +39,14 @@ binlog هفت روز برای PITR فعال است؛ بکاپ و فضای binlog
 
 ```sql
 CREATE DATABASE zabbix CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
-CREATE USER 'zabbix'@'REPLACE_B_IP' IDENTIFIED BY 'REPLACE_DB_PASSWORD';
-CREATE USER 'zabbix'@'REPLACE_C_IP' IDENTIFIED BY 'REPLACE_DB_PASSWORD';
-GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'REPLACE_B_IP';
-GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'REPLACE_C_IP';
+CREATE USER 'zabbix'@'192.168.42.2' IDENTIFIED BY 'REPLACE_DB_PASSWORD';
+CREATE USER 'zabbix'@'192.168.42.3' IDENTIFIED BY 'REPLACE_DB_PASSWORD';
+GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'192.168.42.2';
+GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'192.168.42.3';
 SELECT User,Host FROM mysql.user;
 ```
 
-حساب بدون % و بدون privilege سراسری است. نصب import و upgrade به دسترسی DDL روی همین DB نیاز دارد. schema فقط یک‌بار، در مرحله نود B import می‌شود؛ در نود A/C دوباره import نکنید. اگر import با خطای binary logging/trigger privilege مواجه شد، مقدار فعلی log_bin_trust_function_creators را ثبت، موقتاً 1 کنید و بلافاصله بعد از import به مقدار قبلی برگردانید؛ دائمی رها نشود.
+حساب بدون % و بدون privilege سراسری است. نصب import و upgrade به دسترسی DDL روی همین DB نیاز دارد. schema فقط یک‌بار، در مرحله نود B import می‌شود؛ در نود A/C دوباره import نکنید. قبل از import روی B، در نشست root دیتابیس `SHOW GLOBAL VARIABLES LIKE 'log_bin_trust_function_creators';` را ثبت کنید؛ برای import دارای trigger با binlog فعال، `SET GLOBAL log_bin_trust_function_creators=1;` اجرا و بعد از اتمام import با `SET GLOBAL log_bin_trust_function_creators=0;` به مقدار قبلی (اگر قبلاً صفر بوده) برگردانید. اگر import با خطای binary logging/trigger privilege مواجه شد، مقدار فعلی log_bin_trust_function_creators را ثبت، موقتاً 1 کنید و بلافاصله بعد از import به مقدار قبلی برگردانید؛ دائمی رها نشود.
 
 پورت 3306 فقط از B/C و مسیر بکاپ مصوب مجاز باشد. ارتباط داخلی DB در این baseline بدون TLS است و باید در شبکه محدود باشد؛ اگر سیاست سازمان TLS داخلی می‌خواهد، قبل از go-live گواهی CA و verify روی server/frontend تنظیم شود.
 
@@ -57,3 +57,5 @@ SELECT User,Host FROM mysql.user;
 - 3306 از B/C قابل اتصال و از شبکه غیرمجاز مسدود.
 - لاگ slow با logrotate سازمانی چرخش دارد؛ binlog با حذف دستی فایل پاک نشود.
 - backup خارج از همین VM مطابق داک عملیات آماده شود.
+
+در بازبینی، innodb_flush_method منسوخ با چهار گزینه buffering/write-through مخصوص MariaDB جدید جایگزین شد؛ دوام commit همچنان با innodb_flush_log_at_trx_commit=1 و sync_binlog=1 برقرار است.

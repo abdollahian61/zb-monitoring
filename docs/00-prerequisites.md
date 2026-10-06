@@ -16,11 +16,11 @@
 
 | مقدار | جایگزین |
 |---|---|
-| IP دیتابیس | REPLACE_DB_IP |
-| IP نود B | REPLACE_B_IP |
-| IP نود C | REPLACE_C_IP |
+| IP دیتابیس | 192.168.42.4 |
+| IP نود B | 192.168.42.2 |
+| IP نود C | 192.168.42.3 |
 | IP مبدأ HAProxy (همه نودهای HA) | REPLACE_HAPROXY_IP |
-| شبکه پراکسی‌ها | REPLACE_PROXY_CIDR |
+| شبکه پراکسی‌ها | 192.168.42.5 و 192.168.42.6 |
 | IP مدیر / شبکه مدیریت | REPLACE_ADMIN_CIDR |
 | رمز دیتابیس | REPLACE_DB_PASSWORD |
 
@@ -53,8 +53,32 @@ findmnt /var/lib/mysql
 df -hT
 ```
 
-hostname یکتا تعیین کنید (نمونه‌های پیشنهادی؛ نام نهایی مطابق استاندارد سازمان): A=`eit-zbx-db01`، B=`eit-zbx-srv01`، C=`eit-zbx-srv02`.
+hostnameهای اعلام‌شده: A=`EIT-ZBX-DB`، B=`EIT-ZBX-Pri`، C=`EIT-ZBX-HA`.
 
 SSD دیتابیس باید قبل از نصب در /var/lib/mysql با mount دائمی آماده باشد؛ /etc/fstab مبتنی بر UUID و mount سالم بعد از reboot بررسی شود. این داک عمداً دستور format ندارد چون نام و وضعیت دیسک معلوم نیست. OS/log و DB ترجیحاً volume جدا داشته باشند. اگر تنها یک دیسک دارید برای OS، binlog، redo و فضای آزاد سهم در نظر بگیرید؛ کل 1 TB را history حساب نکنید. برای mount حیاتی DB از nofail استفاده نکنید.
 
 CPU/RAM و clock ماشین‌ها را بررسی کنید؛ memory ballooning و overcommit شدید روی VM دیتابیس مناسب نیست. حدود 20٪ فضای دیسک آزاد نگه دارید. تنظیمات فایروال در داک شبکه آمده است.
+
+## DNS و نام‌های قطعی
+
+پسوند DNS داخلی هنوز اعلام نشده؛ `EIT-ZBX-Pri` و نام‌های مشابه hostname هستند، نه FQDN. برای جلوگیری از وابستگی نصب به suffix نامشخص، DBHost و NodeAddress با IP قطعی تنظیم شده‌اند. FQDN تأییدشده پنل `zabbix.iraneit.app` است و به HAProxy موجود اشاره می‌کند.
+
+| نام | IP | نقش |
+|---|---|---|
+| EIT-ZBX-Pri | 192.168.42.2 | نود B |
+| EIT-ZBX-HA | 192.168.42.3 | نود C |
+| EIT-ZBX-DB | 192.168.42.4 | نود A |
+| EIT-ZBX-Proxy01 | 192.168.42.5 | پراکسی اول |
+| EIT-ZBX-Proxy02 | 192.168.42.6 | پراکسی دوم |
+
+روی هر نود `hostnamectl set-hostname NAME` با نام همان نود اجرا شود. رکوردهای زیر را بدون ایجاد رکورد تکراری به /etc/hosts هر پنج نود اضافه کنید؛ رکورد 127.0.1.1 متناقض برای نام همین نود اصلاح شود:
+
+```text
+192.168.42.2 EIT-ZBX-Pri
+192.168.42.3 EIT-ZBX-HA
+192.168.42.4 EIT-ZBX-DB
+192.168.42.5 EIT-ZBX-Proxy01
+192.168.42.6 EIT-ZBX-Proxy02
+```
+
+`getent hosts EIT-ZBX-Pri EIT-ZBX-HA EIT-ZBX-DB EIT-ZBX-Proxy01 EIT-ZBX-Proxy02` را بررسی کنید. دامنه پنل را در hosts به B یا C نگاشت نکنید؛ DNS آن باید HAProxy باشد. IP مبدأ HAProxy، CIDR مدیریت و URI دقیق mirror هنوز نامشخص‌اند.
