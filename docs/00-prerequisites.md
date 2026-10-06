@@ -61,7 +61,7 @@ CPU/RAM و clock ماشین‌ها را بررسی کنید؛ memory ballooning 
 
 ## DNS و نام‌های قطعی
 
-پسوند DNS داخلی هنوز اعلام نشده؛ `EIT-ZBX-Pri` و نام‌های مشابه hostname هستند، نه FQDN. برای جلوگیری از وابستگی نصب به suffix نامشخص، DBHost و NodeAddress با IP قطعی تنظیم شده‌اند. FQDN تأییدشده پنل `zabbix.iraneit.app` است و به HAProxy موجود اشاره می‌کند.
+طبق تأیید شبکه، نام‌های کوتاه هر پنج نود بدون پسوند روی DNS داخلی resolve می‌شوند؛ پسوند دیگری لازم نیست. این‌ها نام DNS تک‌بخشی هستند. DBHost و NodeAddress با IPهای قطعی تنظیم شده‌اند. FQDN تأییدشده پنل `zabbix.iraneit.app` است و به HAProxy موجود اشاره می‌کند.
 
 | نام | IP | نقش |
 |---|---|---|
@@ -71,7 +71,7 @@ CPU/RAM و clock ماشین‌ها را بررسی کنید؛ memory ballooning 
 | EIT-ZBX-Proxy01 | 192.168.42.5 | پراکسی اول |
 | EIT-ZBX-Proxy02 | 192.168.42.6 | پراکسی دوم |
 
-روی هر نود `hostnamectl set-hostname NAME` با نام همان نود اجرا شود. رکوردهای زیر را بدون ایجاد رکورد تکراری به /etc/hosts هر پنج نود اضافه کنید؛ رکورد 127.0.1.1 متناقض برای نام همین نود اصلاح شود:
+روی هر نود `hostnamectl set-hostname NAME` با نام همان نود اجرا شود. DNS داخلی مسیر اصلی resolve است و افزودن رکورد به /etc/hosts لازم نیست. فقط در صورت نیاز به fallback و با هماهنگی شبکه، رکوردهای زیر را بدون تکرار اضافه کنید؛ رکورد 127.0.1.1 متناقض برای نام همین نود اصلاح شود:
 
 ```text
 192.168.42.2 EIT-ZBX-Pri
@@ -81,4 +81,4 @@ CPU/RAM و clock ماشین‌ها را بررسی کنید؛ memory ballooning 
 192.168.42.6 EIT-ZBX-Proxy02
 ```
 
-`getent hosts EIT-ZBX-Pri EIT-ZBX-HA EIT-ZBX-DB EIT-ZBX-Proxy01 EIT-ZBX-Proxy02` را بررسی کنید. دامنه پنل را در hosts به B یا C نگاشت نکنید؛ DNS آن باید HAProxy باشد. IP مبدأ HAProxy، CIDR مدیریت و URI دقیق mirror هنوز نامشخص‌اند.
+`getent hosts EIT-ZBX-Pri EIT-ZBX-HA EIT-ZBX-DB EIT-ZBX-Proxy01 EIT-ZBX-Proxy02` را بررسی کنید. دامنه پنل را در hosts به B یا C نگاشت نکنید؛ DNS آن باید HAProxy باشد. هر پنج نام باید از طریق DNS داخلی به IP جدول resolve شوند؛ resolver سازمانی روی هر نود تنظیم و با `resolvectl status` بررسی شود. IP مبدأ HAProxy، CIDR مدیریت و URI دقیق mirror هنوز نامشخص‌اند.
