@@ -5,6 +5,22 @@
 ## 1. نصب نسخه دقیق
 
 ```bash
+
+
+sudo -i
+
+cat > /etc/apt/sources.list.d/eit-mariadb.sources <<'EOF'
+Types: deb
+URIs: https://repository.iraneit.dev/artifactory/eit-mariadb-11.4
+Suites: noble
+Components: main
+Architectures: amd64
+Trusted: yes
+EOF
+
+apt-get update
+apt-cache policy mariadb-server mariadb-client mariadb-backup
+apt-cache madison mariadb-server
 sudo -i
 apt-get update
 MDB_VER=$(apt-cache madison mariadb-server | awk '$3 ~ /(^|:)11\.4\.13([+~-]|$)/ {print $3; exit}')
