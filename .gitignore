@@ -1,0 +1,6 @@
+*.secret
+.env
+*.pem
+*.key
+zabbix.conf.php
+versions-installed.txt
