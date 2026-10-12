@@ -134,3 +134,9 @@ Hostname=EIT-ZBX-Pri
 ```
 
 ServerActive را خالی/کامنت کنید. از template نوع passive مانند Linux by Zabbix agent استفاده کنید. سپس `systemctl enable --now zabbix-agent2` و `systemctl restart zabbix-agent2`. مانیتورینگ DB/OS نود A و C هم مطابق همین دسترسی مبدأ تنظیم شود.
+
+## نکات نصب عملیاتی
+
+فایل zabbix.conf.php پس از تکمیل wizard ساخته می‌شود؛ قبل از آن chown یا کپی اجرا نکنید. اگر wizard نتوانست ذخیره کند فایل پیشنهادی را دانلود و در مسیر تنظیم قرار دهید. HTTP روی 80 ممکن است سایت پیش‌فرض Nginx باشد؛ backend زبیکس روی 8080 است. برای تکمیل wizard اولیه، موقتاً فقط frontend Pri را در HAProxy فعال کنید و بعد از کپی کانفیگ به HA هر دو backend را فعال کنید.
+
+ha_status روی نود Active اجرا می‌شود. پیام Runtime commands can be executed only in active mode روی standby طبیعی است؛ خطای rtc پس از stop سرویس نیز طبیعی است. نام Pri اولویت دائمی ندارد. ری‌استارت Agent2 نقش HA سرور را تغییر نمی‌دهد.
