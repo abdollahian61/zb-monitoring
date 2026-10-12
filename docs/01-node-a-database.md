@@ -31,6 +31,20 @@ systemctl stop mariadb
 
 اگر suffix نسخه client/backup متفاوت باشد، نسخه کامل هر بسته را جدا با madison بردارید. حل وابستگی apt باید بدون downgrade غیرمنتظره باشد.
 
+## مسیر داده /mnt/mysql
+
+قبل از راه‌اندازی با datadir جدید، دیسک /mnt را با `findmnt -T /mnt` و `lsblk -f` بررسی کنید. برای انتقال دیتابیس موجود، سرویس باید متوقف باشد؛ مبدأ را حذف نکنید و مقصد دارای داده را بدون بررسی بازنویسی نکنید.
+
+```bash
+systemctl stop mariadb
+install -d -o mysql -g mysql -m 750 /mnt/mysql
+apt-get install -y rsync
+rsync -aHAX /var/lib/mysql/ /mnt/mysql/
+chown -R mysql:mysql /mnt/mysql
+```
+
+کانفیگ نمونه datadir و binlog را در /mnt/mysql قرار می‌دهد. در صورت خطای permission، محدودیت AppArmor/systemd و مالکیت مسیر را بررسی کنید؛ Errcode 2 به نبود مسیر یا mount اشاره دارد. mount باید قبل از شروع MariaDB حاضر باشد.
+
 ## 2. تنظیمات
 
 فایل [mariadb.cnf](../configs/mariadb.cnf) را بعد از جایگزینی DB IP در `/etc/mysql/mariadb.conf.d/60-zabbix.cnf` قرار دهید.
