@@ -28,7 +28,25 @@
 
 ## مخزن داخلی
 
-دسترسی اینترنت مخزن، به معنی وجود بسته‌های Zabbix/MariaDB در آن نیست. مدیر Artifactory باید upstream رسمی Zabbix 7.4 برای Ubuntu noble و MariaDB 11.4 برای noble را با کلید امضای معتبر mirror/proxy کند. مسیر دقیق repository.iraneit.dev هنوز مشخص نیست؛ فایل sources فعال سازمان را حفظ کنید. از trusted=yes و allow-unauthenticated استفاده نکنید.
+مخزن تأییدشده زبیکس در JFrog: `https://repository.iraneit.dev/artifactory/zabbix`؛ کلید Remote برابر `zabbix` و upstream برابر `https://repo.zabbix.com/zabbix/7.4/stable/ubuntu/` است. مسیر قدیمی `eit-zabbix-7.4` وجود ندارد و باید اصلاح شود. فایل‌های APT سازمانی دیگر را حفظ کنید.
+
+طبق انتخاب کاربر، نمونه داخلی بدون keyring و با `Trusted: yes` است؛ این گزینه بررسی امضای مخزن را غیرفعال می‌کند. هشدار NO_PUBKEY ممکن است باقی بماند. برای فعال‌کردن اعتبارسنجی، کلید معتبر و Signed-By سازمانی لازم است.
+
+روی Pri، HA و هر دو پراکسی قبل از نصب:
+
+```bash
+cat > /etc/apt/sources.list.d/eit-zabbix.sources <<'EOF'
+Types: deb
+URIs: https://repository.iraneit.dev/artifactory/zabbix
+Suites: noble
+Components: main
+Architectures: amd64 all
+Trusted: yes
+EOF
+apt-get update
+```
+
+نسخه کامل تأییدشده بسته‌ها `1:7.4.15-1+ubuntu24.04` است؛ `=7.4.15` کافی نیست. اگر Virtual `eit-debian` بسته‌های all را نشان نمی‌دهد، از Remote مستقیم بالا استفاده کنید؛ وجود Packages.gz به‌تنهایی تضمین دانلود فایل deb نیست.
 
 ابتدا Ubuntu، سپس بسته‌های vendor را بررسی کنید:
 
@@ -49,13 +67,13 @@ systemctl enable --now chrony
 timedatectl set-timezone Asia/Tehran
 chronyc tracking
 lsblk -f
-findmnt /var/lib/mysql
+findmnt -T /mnt/mysql
 df -hT
 ```
 
 hostnameهای اعلام‌شده: A=`EIT-ZBX-DB`، B=`EIT-ZBX-Pri`، C=`EIT-ZBX-HA`.
 
-SSD دیتابیس باید قبل از نصب در /var/lib/mysql با mount دائمی آماده باشد؛ /etc/fstab مبتنی بر UUID و mount سالم بعد از reboot بررسی شود. این داک عمداً دستور format ندارد چون نام و وضعیت دیسک معلوم نیست. OS/log و DB ترجیحاً volume جدا داشته باشند. اگر تنها یک دیسک دارید برای OS، binlog، redo و فضای آزاد سهم در نظر بگیرید؛ کل 1 TB را history حساب نکنید. برای mount حیاتی DB از nofail استفاده نکنید.
+دیسک دیتابیس باید در /mnt با mount دائمی آماده و datadir در /mnt/mysql باشد؛ /etc/fstab مبتنی بر UUID و mount سالم بعد از reboot بررسی شود. این داک عمداً دستور format ندارد چون نام و وضعیت دیسک معلوم نیست. OS/log و DB ترجیحاً volume جدا داشته باشند. اگر تنها یک دیسک دارید برای OS، binlog، redo و فضای آزاد سهم در نظر بگیرید؛ کل 1 TB را history حساب نکنید. برای mount حیاتی DB از nofail استفاده نکنید.
 
 CPU/RAM و clock ماشین‌ها را بررسی کنید؛ memory ballooning و overcommit شدید روی VM دیتابیس مناسب نیست. حدود 20٪ فضای دیسک آزاد نگه دارید. تنظیمات فایروال در داک شبکه آمده است.
 
@@ -81,4 +99,4 @@ CPU/RAM و clock ماشین‌ها را بررسی کنید؛ memory ballooning 
 192.168.42.6 EIT-ZBX-Proxy02
 ```
 
-`getent hosts EIT-ZBX-Pri EIT-ZBX-HA EIT-ZBX-DB EIT-ZBX-Proxy01 EIT-ZBX-Proxy02` را بررسی کنید. دامنه پنل را در hosts به B یا C نگاشت نکنید؛ DNS آن باید HAProxy باشد. هر پنج نام باید از طریق DNS داخلی به IP جدول resolve شوند؛ resolver سازمانی روی هر نود تنظیم و با `resolvectl status` بررسی شود. IP مبدأ HAProxy، CIDR مدیریت و URI دقیق mirror هنوز نامشخص‌اند.
+`getent hosts EIT-ZBX-Pri EIT-ZBX-HA EIT-ZBX-DB EIT-ZBX-Proxy01 EIT-ZBX-Proxy02` را بررسی کنید. دامنه پنل را در hosts به B یا C نگاشت نکنید؛ DNS آن باید HAProxy باشد. هر پنج نام باید از طریق DNS داخلی به IP جدول resolve شوند؛ resolver سازمانی روی هر نود تنظیم و با `resolvectl status` بررسی شود. IP مبدأ HAProxy، CIDR مدیریت هنوز نامشخص‌اند.
