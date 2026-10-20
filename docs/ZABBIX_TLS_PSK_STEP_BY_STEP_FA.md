@@ -158,6 +158,57 @@ Get-Service 'Zabbix Agent 2'
 
 در **Monitoring → Latest data** مقدار تازه برای یک Item از نوع Passive را چک کنید. فقط سبز بودن Availability کافی نیست؛ **timestamp جدید** را بررسی کنید.
 
+### تنظیم دقیق تب Encryption برای Passive Agent
+
+در Zabbix Frontend، بعد از باز کردن Host و رفتن به تب **Encryption**، برای Agent2 که به‌صورت **Passive** مانیتور می‌شود تنظیمات را دقیقاً به شکل زیر انجام دهید:
+
+- در **Connections to host** گزینه **PSK** را انتخاب کنید. در این سناریو Proxy/Server آغازکننده اتصال به Agent روی TCP/10050 است.
+- بعد از انتخاب PSK، دو فیلد **PSK identity** و **PSK** نمایش داده می‌شوند.
+- در **PSK identity** دقیقاً همان مقداری را وارد کنید که در `TLSPSKIdentity` فایل `zabbix_agent2.conf` نوشته‌اید. مثال: `EIT-WIN-SRV-001`.
+- در **PSK**، محتوای واقعی فایل `agent2.psk` را وارد کنید. این مقدار Secret مشترک است و Public Key یا Private Key نیست.
+- برای Agentهای **Passive-only**، در **Connections from host** گزینه **No encryption** می‌تواند فعال بماند و لازم نیست PSK را تیک بزنید. این قسمت زمانی اهمیت دارد که Agent خودش اتصال Active به Proxy/Server برقرار کند.
+- در پایان **Update** را بزنید و بعد از Sync شدن تنظیمات Proxy، Agent2 را Restart و Latest data را بررسی کنید.
+
+نمونه تنظیم:
+
+```text
+Connections to host
+    PSK              [SELECTED]
+
+Connections from host
+    No encryption    [CHECKED]
+    PSK              [UNCHECKED]
+    Certificate      [UNCHECKED]
+
+PSK identity:
+    EIT-WIN-SRV-001
+
+PSK:
+    <exact contents of agent2.psk>
+```
+
+تنظیم متناظر روی Agent2:
+
+```ini
+TLSAccept=psk
+TLSPSKIdentity=EIT-WIN-SRV-001
+TLSPSKFile=/path/to/agent2.psk
+```
+
+در Windows نمونه مسیر می‌تواند چنین باشد:
+
+```ini
+TLSPSKFile=C:\\Program Files\\Zabbix Agent 2\\agent2.psk
+```
+
+و در Linux:
+
+```ini
+TLSPSKFile=/etc/zabbix/agent2.psk
+```
+
+> **نکته مهم:** `PSK identity` فقط شناسه است. خود Secret در فیلد **PSK** قرار می‌گیرد و باید byte-for-byte با محتوای فایل معرفی‌شده در `TLSPSKFile` یکسان باشد.
+
 ## 5. امن‌سازی ارتباط Active Proxy → Zabbix Server
 
 این مرحله **مستقل** از PSKهای Agentها است و روی **هر Proxy جداگانه** انجام می‌شود.
