@@ -1,16 +1,25 @@
+<div dir="rtl" align="right">
+
 # Zabbix 7.4 TLS-PSK: راهنمای گام‌به‌گام برای Windows Agent2، Linux Agent2، Proxy و Server
 
 > **هدف:** امن‌سازی ارتباط Zabbix Agent2 ↔ Proxy و Proxy ↔ Zabbix Server با TLS-PSK. مناسب معماری دو سرور HA، دو Proxy و Agentهای عمدتاً Passive. دستورها را ابتدا روی **یک هاست آزمایشی** اجرا کنید. هیچ PSK واقعی را در Git ذخیره نکنید.
 
 ## 0. نقشه ارتباط و اصطلاحات
 
-```mermaid
-flowchart LR
- W[Windows Agent2\nPassive :10050] <-->|TLS-PSK A| P1[Proxy01]
- L[Linux Agent2\nPassive :10050] <-->|TLS-PSK B| P2[Proxy02]
- P1 -->|Active Proxy TLS-PSK P1\nTCP 10051| S[Zabbix HA Servers\nShared DB]
- P2 -->|Active Proxy TLS-PSK P2\nTCP 10051| S
+## نمودار ارتباط
+
+</div>
+
+
+```text
+Windows Agent2 (Passive) <-- TCP/10050 TLS-PSK --> Proxy01
+Linux Agent2   (Passive) <-- TCP/10050 TLS-PSK --> Proxy02
+Proxy01 (Active) --> TCP/10051 TLS-PSK --> Zabbix Server HA
+Proxy02 (Active) --> TCP/10051 TLS-PSK --> Zabbix Server HA
 ```
+
+<div dir="rtl" align="right">
+
 
 - **PSK** یک کلید محرمانه مشترک است؛ **جفت Public/Private Key نیست**. Identity نام شناسایی کلید است و محرمانه نیست؛ مقدار PSK محرمانه است.
 - **Passive Agent**: پراکسی به Agent روی TCP/10050 وصل می‌شود؛ در Agent از `TLSAccept=psk` استفاده می‌کنیم. `TLSConnect` برای اتصال خروجی Agent (Active checks) است.
@@ -33,6 +42,9 @@ flowchart LR
 
 **روی همان Linux Host** (نه روی Proxy):
 
+</div>
+
+
 ```bash
 # ساخت کلید تصادفی 256 بیتی در فایل محرمانه
 sudo install -d -m 0755 /etc/zabbix
@@ -42,7 +54,13 @@ sudo chmod 0600 /etc/zabbix/agent2.psk
 sudo cp -a /etc/zabbix/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf.bak
 ```
 
+<div dir="rtl" align="right">
+
+
 در `/etc/zabbix/zabbix_agent2.conf` پارامترهای موجود را **ویرایش کنید، نه اینکه چند تعریف تکراری اضافه کنید**:
+
+</div>
+
 
 ```ini
 Server=PROXY01_IP,PROXY02_IP
@@ -52,6 +70,9 @@ TLSPSKIdentity=EIT-LINUX-001
 TLSPSKFile=/etc/zabbix/agent2.psk
 ```
 
+<div dir="rtl" align="right">
+
+
 **نکته:** `Server` فهرست IP/DNS مجاز برای Passive connections است. اگر فقط Proxy01 این Host را مانیتور می‌کند، می‌توانید فقط IP همان Proxy را قرار دهید. برای Failover، هر پراکسی‌ای که واقعاً قرار است متصل شود باید مجاز باشد. `ServerActive` برای Passive-only ضروری نیست. `StartAgents` را برای Agent2 تنظیم نکنید.
 
 هنوز Restart نکنید؛ ابتدا مرحله 4 (Frontend) را آماده کنید. برای دیدن مقدار PSK به‌صورت امن روی همان ماشین از `sudo cat /etc/zabbix/agent2.psk` استفاده کنید و آن را در تیکت، چت یا مخزن ذخیره نکنید.
@@ -59,6 +80,9 @@ TLSPSKFile=/etc/zabbix/agent2.psk
 ## 3. Windows Agent2: تولید کلید و تنظیمات
 
 PowerShell را با **Run as Administrator** باز کنید. مسیر نصب را با محیط خودتان تطبیق دهید:
+
+</div>
+
 
 ```powershell
 $dir = 'C:\Program Files\Zabbix Agent 2'
@@ -73,9 +97,15 @@ Get-CimInstance Win32_Service -Filter "Name='Zabbix Agent 2'" | Select-Object Na
 icacls $pskPath
 ```
 
+<div dir="rtl" align="right">
+
+
 **مهم:** ACL فایل PSK را طوری تنظیم کنید که فقط Administrators، SYSTEM و حساب واقعی سرویس Zabbix Agent2 امکان خواندن داشته باشند. پیش از تغییر ACL، خروجی `StartName` را ببینید؛ حذف مجوز حساب سرویس باعث خطای TLS می‌شود. مسیر فایل ممکن است بسته به نصب متفاوت باشد.
 
 از فایل `zabbix_agent2.conf` بکاپ بگیرید و تنظیمات موجود را اصلاح کنید:
+
+</div>
+
 
 ```ini
 Server=PROXY01_IP,PROXY02_IP
@@ -84,6 +114,9 @@ TLSAccept=psk
 TLSPSKIdentity=EIT-WIN-001
 TLSPSKFile=C:\Program Files\Zabbix Agent 2\agent2.psk
 ```
+
+<div dir="rtl" align="right">
+
 
 برای پیدا کردن مسیر واقعی کانفیگ از `PathName` سرویس در خروجی دستور بالا استفاده کنید؛ فرض نکنید همیشه در یک مسیر است. مقدار PSK، **محتوای فایل** است نه اسم فایل.
 
@@ -100,16 +133,28 @@ TLSPSKFile=C:\Program Files\Zabbix Agent 2\agent2.psk
 
 **سپس** Agent را Restart کنید:
 
+</div>
+
+
 ```bash
 sudo systemctl restart zabbix-agent2
 sudo systemctl status zabbix-agent2 --no-pager
 sudo journalctl -u zabbix-agent2 -n 50 --no-pager
 ```
 
+<div dir="rtl" align="right">
+
+
+</div>
+
+
 ```powershell
 Restart-Service 'Zabbix Agent 2'
 Get-Service 'Zabbix Agent 2'
 ```
+
+<div dir="rtl" align="right">
+
 
 در **Monitoring → Latest data** مقدار تازه برای یک Item از نوع Passive را چک کنید. فقط سبز بودن Availability کافی نیست؛ **timestamp جدید** را بررسی کنید.
 
@@ -119,6 +164,9 @@ Get-Service 'Zabbix Agent 2'
 
 روی Proxy01:
 
+</div>
+
+
 ```bash
 openssl rand -hex 32 | sudo tee /etc/zabbix/proxy.psk >/dev/null
 sudo chown zabbix:zabbix /etc/zabbix/proxy.psk
@@ -126,7 +174,13 @@ sudo chmod 0600 /etc/zabbix/proxy.psk
 sudo cp -a /etc/zabbix/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf.bak
 ```
 
+<div dir="rtl" align="right">
+
+
 در `/etc/zabbix/zabbix_proxy.conf`:
+
+</div>
+
 
 ```ini
 # سایر تنظیمات Server و Hostname موجود را حفظ کنید
@@ -135,9 +189,15 @@ TLSPSKIdentity=EIT-ZBX-PROXY01
 TLSPSKFile=/etc/zabbix/proxy.psk
 ```
 
+<div dir="rtl" align="right">
+
+
 در Frontend: **Administration → Proxies** (در برخی چیدمان‌های 7.4 مسیر **Data collection → Proxies** است)، Proxy01 را باز کنید و در **Encryption**، اتصال **PSK** را انتخاب کنید؛ Identity را `EIT-ZBX-PROXY01` و PSK را **محتوای فایل Proxy01** قرار دهید. ذخیره کنید.
 
 سپس:
+
+</div>
+
 
 ```bash
 sudo systemctl restart zabbix-proxy
@@ -145,11 +205,19 @@ sudo systemctl status zabbix-proxy --no-pager
 sudo journalctl -u zabbix-proxy -n 100 --no-pager
 ```
 
+<div dir="rtl" align="right">
+
+
 برای Proxy02 **یک کلید جدید** بسازید و Identity را `EIT-ZBX-PROXY02` قرار دهید. مقدار PSK آن را در رکورد **همان Proxy02** در Frontend ثبت کنید.
 
 **توجه HA:** هر دو Zabbix Server باید به دیتابیس مشترک دسترسی داشته باشند و Proxy باید برای اتصال به نود فعال مطابق معماری HA پیکربندی شده باشد. PSKهای Proxy در دیتابیس Zabbix نگهداری می‌شوند؛ نیازی به کپی کردن `proxy.psk` روی دو Server نیست. این تنظیم، TLS ارتباط **Proxy→Server** را امن می‌کند؛ نه ارتباط Frontend مرورگر یا MariaDB.
 
 ## 6. تست دقیق و عیب‌یابی
+
+</div>
+
+<div dir="rtl" align="right">
+
 
 | علامت | بررسی |
 |---|---|
@@ -160,11 +228,19 @@ sudo journalctl -u zabbix-proxy -n 100 --no-pager
 | Proxy به Server متصل نمی‌شود | TLSConnect، Identity/PSK در رکورد Proxy، TCP/10051، HA endpoint |
 | بعد از تغییر Frontend هنوز خطا هست | زمان Sync تنظیمات Proxy، لاگ Proxy و داده تازه Latest data |
 
+
+
 تست اتصال TCP از Proxy به Agent:
+
+</div>
+
 
 ```bash
 nc -vz AGENT_IP 10050
 ```
+
+<div dir="rtl" align="right">
+
 
 این تست **فقط TCP را تأیید می‌کند، نه TLS-PSK**. برای تست واقعی، آخرین مقدار Item و لاگ‌های هر دو سمت را بررسی کنید. اجرای `zabbix_get` بدون گزینه‌های TLS روی Agent با `TLSAccept=psk` معمولاً جواب نمی‌دهد.
 
@@ -189,7 +265,10 @@ nc -vz AGENT_IP 10050
 - [ ] هر دو Proxy به Zabbix HA متصل هستند
 - [ ] Rollback و محل نگهداری امن کلیدها ثبت شده‌اند
 
-## 9. تصویر راهنمای مفهومی (نه اسکرین‌شات واقعی)
+## 9. راهنمای متنی پنل Zabbix
+
+</div>
+
 
 ```text
 Data collection > Hosts > [HOST] > Encryption
@@ -202,10 +281,15 @@ Proxy (Active) > Server : TCP/10051, TLSConnect=psk
 Proxy > Agent (Passive): TCP/10050, Agent TLSAccept=psk
 ```
 
-**اسکرین‌شات‌های واقعی:** به دلیل تفاوت چیدمان UI و محرمانگی PSK، این سند عمداً تصویر ساختگی یا حاوی Secret ندارد. هنگام اجرا می‌توان از تب‌های Host Encryption، Proxy Encryption و Latest data **با محو کردن کامل PSK** اسکرین‌شات گرفت و به سند افزود.
+<div dir="rtl" align="right">
+
+
+**این راهنما عمداً بدون اسکرین‌شات تهیه شده است.**
 
 ## منابع رسمی
 
 - [Zabbix 7.4: Encryption using PSK](https://www.zabbix.com/documentation/7.4/en/manual/encryption/using_pre_shared_keys)
 - [Zabbix 7.4: Agent2 configuration](https://www.zabbix.com/documentation/7.4/en/manual/appendix/config/zabbix_agent2)
 - [Zabbix 7.4: Proxy configuration](https://www.zabbix.com/documentation/7.4/en/manual/appendix/config/zabbix_proxy)
+
+</div>
