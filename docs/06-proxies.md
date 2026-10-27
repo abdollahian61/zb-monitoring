@@ -44,3 +44,5 @@ hybrid buffer با 128M RAM و offline retention تا 24 ساعت سقف زما�
 ## رفع خطای proxy not found
 
 نام Hostname کانفیگ باید دقیقاً با Proxy name پنل برابر باشد؛ هر دو پراکسی را Active ثبت کنید. روی standby سرور ممکن است 10051 در دسترس نباشد؛ وضعیت واقعی را با ha_status روی نود Active بررسی کنید. اتصال موفق TCP به Pri به‌تنهایی ثبت پراکسی یا دریافت config را تضمین نمی‌کند.
+
+برای پراکسی سوم، [راهنمای ابرآمد و PSK](08-abramad-and-deployment-results.md) را اجرا کنید. IP ابرآمد هنوز اعلام نشده و در inventory پنج نود اولیه نیست.
