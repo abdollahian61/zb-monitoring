@@ -10,10 +10,13 @@ ZBX_HOSTNAME=${ZBX_HOSTNAME:-$(hostname)}
 [[ "$ZBX_HOSTNAME" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo 'Invalid hostname'; exit 1; }
 echo '1) Direct: Pri + HA'
 echo '2) Through Proxy01 + Proxy02'
-read -rp 'Select [1/2]: ' MODE
+echo '3) Custom collector IP/DNS (Abramad or NAT)'
+read -rp 'Select [1/2/3]: ' MODE
 case "$MODE" in
   1) COLLECTORS='192.168.42.2,192.168.42.3' ;;
   2) COLLECTORS='192.168.42.5,192.168.42.6' ;;
+  3) read -rp 'Allowed collector IP/DNS (comma separated): ' COLLECTORS
+     [[ "$COLLECTORS" =~ ^[a-zA-Z0-9.,:_-]+$ ]] || { echo 'Invalid collectors'; exit 1; } ;;
   *) echo 'Invalid selection'; exit 1 ;;
 esac
 python3 <<'PY'
